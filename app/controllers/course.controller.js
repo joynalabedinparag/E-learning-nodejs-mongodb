@@ -1,109 +1,73 @@
 const db = require("../models");
+const courseService = require("../services/course.service");
 const Course = db.course;
 
-// Create and Save a new Course
-exports.create_course = (req, res) => {
-  // Validate request
-  if (!req.body.title || !req.body.description || !req.body.duration) {
-    res.status(400).send({ message: "Content can not be empty!" });
-    return;
-  }
+class CourseController {
+  async create_course(req, res) {
+      // Validate request
+      if (!req.body.title || !req.body.description || !req.body.duration) {
+        res.status(400).send({ message: "Content can not be empty!" });
+        return;
+      }
 
-  // Create a Course
-  const course = new Course({
-    title: req.body.title,
-    description: req.body.description,
-    instructor: req.body.instructor,
-    duration: req.body.duration,
-    price: req.body.price,
-    // published: req.body.published ? req.body.published : false
-  });
-
-  // Save Course in the database
-  course
-    .save(course)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Course."
+      const course = new Course({
+        title: req.body.title,
+        description: req.body.description,
+        instructor: req.body.instructor,
+        duration: req.body.duration,
+        price: req.body.price,
       });
-    });
-};
+      let r = await courseService.create_course(req);
+      res.status(r.status).send({message: r.message});
+  };
 
-// Retrieve all Courses from the database.
-exports.get_courses = (req, res) => {
-  const title = req.body.title;
-  var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
+  async get_courses (req, res) {
+    const title = req.body.title;
+    var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
+  
+    let r = await courseService.get_course(condition)
+    res.status(r.status).send(r.data);
+  };
 
-  Course.find(condition)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving courses."
-      });
-    });
-};
-
-// Find a single Course with an id
-exports.get_course_by_id = (req, res) => {
-  const id = req.params.id;
-
-  Course.findById(id)
-    .then(data => {
-      if (!data)
-        res.status(404).send({ message: "Not found Course with id " + id });
-      else res.send(data);
-    })
-    .catch(err => {
-      res
-        .status(500)
-        .send({ message: "Error retrieving Course with id=" + id });
-    });
-};
-
-exports.filter_courses = (req, res) => {
-  let allowed_filters = ['instructor', 'title', 'description', 'price'];
-  const prop = req.params.prop;
-  const value = req.params.value;
-  console.log(prop, value)
-
-  if((allowed_filters).includes(prop)) {
-
-    let query = {};
-    query[`${prop}`] = { $regex: '^' + value, $options: 'i' };
-    
-    Course.find(query)
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving courses."
-        });
-      });
+  async filter_courses (req, res) {
+    let allowed_filters = ['instructor', 'title', 'description', 'price'];
+    const prop = req.params.prop;
+    const value = req.params.value;
+  
+    if((allowed_filters).includes(prop)) {
+      let query = {};
+      query[`${prop}`] = { $regex: '^' + value, $options: 'i' };
+      
+      let r = await courseService.filter_courses(query);
+      res.status(r.status).send(r.data);
     } else {
       res.status(400).send({ message: "Invalid Property Name! Property must be one of the followings:" + JSON.stringify(allowed_filters) });
     } 
   };
-    
-    // Update a Course by the id in the request
-    exports.update = (req, res) => {
-      if (!req.body) {
-        return res.status(400).send({
-          message: "Data to update can not be empty!"
-        });
-      }
-      
-      const id = req.params.id;
-      
-      Course.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+
+  async get_course_by_id(req, res) {
+    const id = req.params.id;
+    Course.findById(id)
+      .then(data => {
+        if (!data)
+          res.status(404).send({ message: "Not found Course with id " + id });
+        else res.send(data);
+      })
+      .catch(err => {
+        res
+          .status(500)
+          .send({ message: "Error retrieving Course with id=" + id });
+      });
+  };
+
+  async update (req, res) {
+    if (!req.body) {
+      return res.status(400).send({
+        message: "Data to update can not be empty!"
+      });
+    }
+    const id = req.params.id;
+    Course.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then(data => {
       if (!data) {
         res.status(404).send({
@@ -116,57 +80,81 @@ exports.filter_courses = (req, res) => {
         message: "Error updating Course with id=" + id
       });
     });
-};
+  };
 
-// Delete a Course with the specified id in the request
-exports.delete = (req, res) => {
-  const id = req.params.id;
-
-  Course.findByIdAndRemove(id, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot delete Course with id=${id}. Maybe Course was not found!`
+  async delete (req, res) {
+    const id = req.params.id;
+  
+    Course.findByIdAndRemove(id, { useFindAndModify: false })
+      .then(data => {
+        if (!data) {
+          res.status(404).send({
+            message: `Cannot delete Course with id=${id}. Maybe Course was not found!`
+          });
+        } else {
+          res.send({
+            message: "Course was deleted successfully!"
+          });
+        }
+      })
+      .catch(err => {
+        res.status(500).send({
+          message: "Could not delete Course with id=" + id
         });
-      } else {
+      });
+  };
+
+  async deleteAll(req, res) {
+    Course.deleteMany({})
+      .then(data => {
         res.send({
-          message: "Course was deleted successfully!"
+          message: `${data.deletedCount} Courses were deleted successfully!`
         });
-      }
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Could not delete Course with id=" + id
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing all courses."
+        });
       });
-    });
-};
+  };
+  
 
-// Delete all Courses from the database.
-exports.deleteAll = (req, res) => {
-  Course.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Courses were deleted successfully!`
-      });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all courses."
-      });
-    });
-};
+  // Retrieve all Courses from the database.
+  async get_courses (req, res) {
+    const title = req.body.title;
+    var condition = title ? { title: { $regex: new RegExp(title), $options: "i" } } : {};
 
-// Find all published Courses
-exports.findAllPublished = (req, res) => {
-  Course.find({ published: true })
-    .then(data => {
-      res.send(data);
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving courses."
+    Course.find(condition)
+      .then(data => {
+        res.send(data);
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while retrieving courses."
+        });
       });
-    });
-};
+  };
+
+
+  // Delete all Courses from the database.
+  async deleteAll (req, res) {
+    Course.deleteMany({})
+      .then(data => {
+        res.send({
+          message: `${data.deletedCount} Courses were deleted successfully!`
+        });
+      })
+      .catch(err => {
+        res.status(500).send({
+          message:
+            err.message || "Some error occurred while removing all courses."
+        });
+      });
+  };
+
+}
+
+module.exports = new CourseController(); 
+return;
