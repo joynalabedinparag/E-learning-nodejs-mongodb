@@ -1,0 +1,125 @@
+const Course = require("../app/models/course.model");
+const chai = require("chai");
+const chaiHttp = require("chai-http");
+const app = require("../server");
+chai.should();
+ 
+chai.use(chaiHttp);
+ 
+describe("course", () => {
+
+  // beforeEach((done) => {
+  //   Course.deleteMany({}, (err) => {
+  //     done();
+  //   });
+  // });
+
+  describe("/GET course", () => {
+    it("it should GET all the course", (done) => {
+      chai
+        .request(app)
+        .get("/api/course")
+        .end((err, res) => {
+          res.should.have.status(200);
+          res.body.data.should.be.a("array");
+          res.body.data.length.should.be.eql(0);
+          done();
+        });
+    });
+  });
+
+  // describe("/POST course", () => {
+  //   it("it should new POST a course", (done) => {
+  //     let course = {
+  //       title: "This is the first course",
+  //       body: "This is a course post",
+  //       image:
+  //         "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60",
+  //     };
+  //     chai
+  //       .request(app)
+  //       .post("/api/course")
+  //       .send(course)
+  //       .end((err, res) => {
+  //         res.should.have.status(200);
+  //         res.body.data.should.be.a("object");
+  //         res.body.status.should.be.eql("success");
+  //         done();
+  //       });
+  //   });
+  // });
+
+  // describe("/GET/:id course", () => {
+  //   it("it should GET a course by the id", (done) => {
+  //     let course = new Course({
+  //       title: "This is the first course",
+  //       body: "This is a course post",
+  //       image:
+  //         "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60",
+  //     });
+  //     course.save((err, course) => {
+  //       chai
+  //         .request(app)
+  //         .get("/api/course/" + course.id)
+  //         .send(course)
+  //         .end((err, res) => {
+  //           res.should.have.status(200);
+  //           res.body.data.should.be.a("object");
+  //           res.body.status.should.be.eql("success");
+  //           done();
+  //         });
+  //     });
+  //   });
+  // });
+
+//   describe("/PUT/:id course", () => {
+//     it("it should UPDATE a course given the id", (done) => {
+//       let course = new Course({
+//         title: "This is the first course",
+//         body: "This is a course post",
+//         image:
+//           "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60",
+//       });
+//       course.save((err, course) => {
+//         console.log(course.id);
+//         chai
+//           .request(app)
+//           .put("/api/course/" + course.id)
+//           .send({
+//             title: "The first course was updated",
+//             body: "This is a course post",
+//             image:
+//               "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60",
+//           })
+//           .end((err, res) => {
+//             res.should.have.status(200);
+//             res.body.data.should.be.a("object");
+//             res.body.status.should.be.eql("success");
+//             done();
+//           });
+//       });
+//     });
+//   });
+
+//   describe("/DELETE/:id course", () => {
+//     it("it should DELETE a course given the id", (done) => {
+//       let course = new Course({
+//         title: "This is the first course",
+//         body: "This is a course post",
+//         image:
+//           "https://images.unsplash.com/photo-1518791841217-8f162f1e1131?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=800&q=60",
+//       });
+//       course.save((err, course) => {
+//         chai
+//           .request(app)
+//           .delete("/api/course/" + course.id)
+//           .end((err, res) => {
+//             res.should.have.status(200);
+//             res.body.data.should.be.a("object");
+//             res.body.status.should.be.eql("success");
+//             done();
+//           });
+//       });
+//     });
+//   });
+});
